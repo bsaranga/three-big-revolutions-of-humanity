@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rates of Technological Progress — AI vs Aviation vs Nuclear Fission</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700;800&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --bg: #08090f;
+    --bg-card: rgba(255,255,255,0.03);
+    --border: rgba(255,255,255,0.06);
+    --ai: #00d4ff;
+    --ai-glow: rgba(0,212,255,0.25);
+    --aviation: #f59e0b;
+    --aviation-glow: rgba(245,158,11,0.25);
+    --nuclear: #ef4444;
+    --nuclear-glow: rgba(239,68,68,0.25);
+    --text: #e2e8f0;
+    --text2: #8892a8;
+    --text3: #3e4a5e;
+  }
+  html, body { height: 100%; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: 'Inter', sans-serif;
+    display: flex; flex-direction: column; overflow: hidden;
+  }
+  body::before {
+    content: ''; position: fixed; inset: 0; pointer-events: none;
+    background:
+      radial-gradient(ellipse 60% 40% at 15% 20%, rgba(0,212,255,0.04), transparent 60%),
+      radial-gradient(ellipse 50% 40% at 85% 80%, rgba(239,68,68,0.03), transparent 60%),
+      radial-gradient(ellipse 40% 30% at 50% 50%, rgba(245,158,11,0.02), transparent 50%);
+  }
+  header { padding: 1.5rem 2.5rem 0.5rem; flex-shrink: 0; position: relative; z-index: 2; }
+  header .badge {
+    display: inline-flex; align-items: center; gap: 6px; padding: 5px 14px;
+    border: 1px solid rgba(0,212,255,0.2); border-radius: 100px;
+    font-size: 0.65rem; font-weight: 600; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--ai); background: rgba(0,212,255,0.05); margin-bottom: 0.6rem;
+  }
+  header .badge::before { content: ''; width: 5px; height: 5px; background: var(--ai); border-radius: 50%; }
+  header h1 {
+    font-family: 'Space Grotesk', sans-serif; font-size: clamp(1.4rem, 3vw, 2rem);
+    font-weight: 800; line-height: 1.15; margin-bottom: 0.3rem;
+  }
+  header h1 span {
+    background: linear-gradient(135deg, var(--ai), #a78bfa);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  header .subtitle { font-size: 0.82rem; color: var(--text2); max-width: 680px; }
+
+  .legend-bar {
+    display: flex; gap: 0.6rem; padding: 0.6rem 2.5rem;
+    flex-shrink: 0; flex-wrap: wrap; align-items: center;
+  }
+  .legend-item {
+    display: flex; align-items: center; gap: 8px; font-size: 0.75rem; font-weight: 500;
+    color: var(--text2); cursor: pointer; transition: all 0.3s; user-select: none;
+    padding: 5px 14px; border-radius: 100px; border: 1px solid transparent;
+  }
+  .legend-item.toggleable:hover { background: rgba(255,255,255,0.04); }
+  .legend-item.toggleable.active { border-color: rgba(255,255,255,0.1); background: rgba(255,255,255,0.03); }
+  .legend-item.toggleable.off { opacity: 0.3; border-color: transparent; background: none; }
+  .legend-item.toggleable.off .swatch { background: #3e4a5e !important; box-shadow: none !important; }
+  .legend-item.toggleable.off .legend-label { text-decoration: line-through; text-decoration-color: rgba(255,255,255,0.2); }
+  .legend-item .swatch { width: 28px; height: 3px; border-radius: 2px; transition: all 0.3s; }
+  .legend-item.ai .swatch { background: var(--ai); box-shadow: 0 0 8px var(--ai-glow); }
+  .legend-item.av .swatch { background: var(--aviation); box-shadow: 0 0 8px var(--aviation-glow); }
+  .legend-item.nu .swatch { background: var(--nuclear); box-shadow: 0 0 8px var(--nuclear-glow); }
+  .legend-item .diamond { width: 7px; height: 7px; border-radius: 1px; transform: rotate(45deg); flex-shrink: 0; }
+  .legend-sep { width: 1px; height: 16px; background: var(--border); }
+  .legend-item.bswan { font-style: italic; color: var(--text3); cursor: default; }
+  .legend-item.bswan .diamond { background: #fff; border: 1px solid rgba(255,255,255,0.4); }
+
+  .align-toggle {
+    display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none;
+    padding: 4px 14px; border-radius: 100px; transition: all 0.3s;
+  }
+  .align-toggle:hover { background: rgba(255,255,255,0.04); }
+  .align-toggle .toggle-track {
+    width: 32px; height: 16px; border-radius: 8px;
+    background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12);
+    position: relative; transition: all 0.3s; flex-shrink: 0;
+  }
+  .align-toggle .toggle-thumb {
+    width: 12px; height: 12px; border-radius: 50%;
+    background: #4a5568; position: absolute; top: 1px; left: 1px;
+    transition: all 0.3s;
+  }
+  .align-toggle.on .toggle-track {
+    background: rgba(167,139,250,0.25); border-color: rgba(167,139,250,0.4);
+  }
+  .align-toggle.on .toggle-thumb {
+    background: #a78bfa; left: 17px;
+    box-shadow: 0 0 6px rgba(167,139,250,0.5);
+  }
+  .align-toggle .toggle-label {
+    font-size: 0.7rem; font-weight: 500; color: var(--text3); transition: color 0.3s;
+  }
+  .align-toggle.on .toggle-label { color: #a78bfa; }
+
+  .chart-wrap { flex: 1; position: relative; padding: 0.5rem 2.5rem 1rem; min-height: 0; z-index: 1; }
+  canvas { display: block; width: 100%; height: 100%; }
+
+  .tooltip {
+    position: fixed; pointer-events: none;
+    background: rgba(12,14,25,0.95); border: 1px solid var(--border);
+    border-radius: 10px; padding: 10px 14px; max-width: 280px;
+    backdrop-filter: blur(12px); box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+    opacity: 0; transition: opacity 0.15s; z-index: 100;
+  }
+  .tooltip.show { opacity: 1; }
+  .tooltip .tt-year { font-family: 'Space Grotesk', sans-serif; font-size: 0.7rem; font-weight: 600; letter-spacing: 0.08em; margin-bottom: 3px; }
+  .tooltip .tt-title { font-size: 0.85rem; font-weight: 700; margin-bottom: 4px; }
+  .tooltip .tt-desc { font-size: 0.72rem; color: var(--text2); line-height: 1.5; }
+  .tooltip .tt-tag { display: inline-block; padding: 2px 8px; border-radius: 100px; font-size: 0.58rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; margin-top: 6px; }
+
+  .insights {
+    display: none; gap: 1rem; padding: 0 2.5rem 1.2rem;
+    flex-shrink: 0; flex-wrap: wrap; z-index: 2; position: relative;
+  }
+  .insights.show {
+    display: flex;
+  }
+  .insight-card {
+    flex: 1; min-width: 200px; background: var(--bg-card);
+    border: 1px solid var(--border); border-radius: 12px; padding: 0.9rem 1.1rem;
+  }
+  .insight-card .ic-label { font-size: 0.6rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text3); margin-bottom: 4px; }
+  .insight-card .ic-value { font-family: 'Space Grotesk', sans-serif; font-size: 1.1rem; font-weight: 700; }
+  .insight-card .ic-note { font-size: 0.68rem; color: var(--text2); margin-top: 2px; }
+</style>
+</head>
+<body>
+<header>
+  <div class="badge">Comparative Analysis</div>
+  <h1>Three Revolutions, <span>One Chart</span></h1>
+  <div class="subtitle">Plotting the S-curves of AI, aviation, and nuclear fission — and the black swan moments that bent each curve.</div>
+</header>
+<div class="legend-bar">
+  <div class="legend-item ai toggleable active" data-series="ai" onclick="toggle('ai')"><div class="swatch"></div><span class="legend-label">Artificial Intelligence</span></div>
+  <div class="legend-item av toggleable" data-series="av" onclick="toggle('av')"><div class="swatch"></div><span class="legend-label">Aviation</span></div>
+  <div class="legend-item nu toggleable" data-series="nu" onclick="toggle('nu')"><div class="swatch"></div><span class="legend-label">Nuclear Fission</span></div>
+  <div class="legend-sep"></div>
+  <div class="legend-item bswan"><div class="diamond"></div> Black Swan Event</div>
+  <div class="legend-sep"></div>
+  <div class="align-toggle" id="alignToggle" onclick="toggleAlign()">
+    <div class="toggle-track"><div class="toggle-thumb"></div></div>
+    <span class="toggle-label">Align timelines from inception</span>
+  </div>
+  <div class="legend-sep"></div>
+  <div class="legend-item" style="font-size:0.65rem;color:var(--text3);cursor:default;padding:0">click a domain to toggle</div>
+</div>
+<div class="chart-wrap"><canvas id="chart"></canvas></div>
+<div class="insights">
+  <div class="insight-card">
+    <div class="ic-label">First Proof → Global Shock</div>
+    <div class="ic-value" style="color:var(--ai)">AI — 10 years</div>
+    <div class="ic-note">AlexNet (2012) → ChatGPT (2022). Aviation took 44 yrs, nuclear just 7</div>
+  </div>
+  <div class="insight-card">
+    <div class="ic-label">Fastest to Global Shock</div>
+    <div class="ic-value" style="color:var(--nuclear)">Nuclear — 7 years</div>
+    <div class="ic-note">Fission (1938) → Hiroshima (1945): wartime urgency compressed decades into years</div>
+  </div>
+  <div class="insight-card">
+    <div class="ic-label">Longest Runway</div>
+    <div class="ic-value" style="color:var(--aviation)">Aviation — 44 years</div>
+    <div class="ic-note">Wright Brothers (1903) → Sound Barrier (1947): steady climb through two world wars</div>
+  </div>
+  <div class="insight-card">
+    <div class="ic-label">Shared Pattern</div>
+    <div class="ic-value" style="color:#a78bfa">Proof → Paradigm → Shock</div>
+    <div class="ic-note">All three followed the same arc: impossible made real, then a new method, then the world changed</div>
+  </div>
+</div>
+<div class="tooltip" id="tooltip">
+  <div class="tt-year" id="tt-year"></div>
+  <div class="tt-title" id="tt-title"></div>
+  <div class="tt-desc" id="tt-desc"></div>
+  <div class="tt-tag" id="tt-tag"></div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════
+// COLORS
+// ═══════════════════════════════════════════════════════════════════
+var AI_COLOR  = '#00d4ff';
+var AV_COLOR  = '#f59e0b';
+var NU_COLOR  = '#ef4444';
+var GHOST     = '#555555';
+
+// ═══════════════════════════════════════════════════════════════════
+// TOGGLE STATE
+// ═══════════════════════════════════════════════════════════════════
+var show = { ai: true, av: false, nu: false };
+var aligned = false;
+
+function toggle(key) {
+  show[key] = !show[key];
+  var el = document.querySelector('[data-series="' + key + '"]');
+  if (show[key]) { el.classList.add('active'); el.classList.remove('off'); }
+  else           { el.classList.remove('active'); el.classList.add('off'); }
+  render();
+}
+
+function toggleAlign() {
+  aligned = !aligned;
+  var el = document.getElementById('alignToggle');
+  var ins = document.querySelector('.insights');
+  if (aligned) { el.classList.add('on'); ins.classList.add('show'); }
+  else         { el.classList.remove('on'); ins.classList.remove('show'); }
+  // snap immediately — coordinate system changes too dramatically to animate
+  if (animFrame) { cancelAnimationFrame(animFrame); animFrame = null; }
+  computeRange();
+  animMin = targetMin; animMax = targetMax;
+  renderFrame();
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// ALIGNED MODE — comparable Black Swan alignment
+// Each anchor groups one Black Swan per domain that serves a similar
+// role in the technology's lifecycle. Curves are time-warped so
+// these events line up on the X axis, and separated into Y lanes.
+// ═══════════════════════════════════════════════════════════════════
+var alignAnchors = [
+  { label: 'First Proof',    desc: 'Proving the impossible possible',  av: 1903, nu: 1938, ai: 2012 },
+  { label: 'New Paradigm',   desc: 'A fundamentally new approach',     av: 1939, nu: 1942, ai: 2017 },
+  { label: 'Global Shock',   desc: 'The world changes overnight',      av: 1947, nu: 1945, ai: 2022 }
+];
+
+// Y-axis lanes (capability index range each domain is mapped into)
+var alignLanes = {
+  ai: [72, 97],
+  av: [38, 63],
+  nu: [3, 28]
+};
+
+// Map an absolute year to a warped "anchor position" for a given domain
+function warpYear(year, key) {
+  var ay = [], ap = [];
+  for (var i = 0; i < alignAnchors.length; i++) {
+    ay.push(alignAnchors[i][key]);
+    ap.push(i);
+  }
+  var n = ay.length;
+  if (year <= ay[0]) {
+    var rate = 1 / (ay[1] - ay[0]);
+    return ap[0] + (year - ay[0]) * rate;
+  }
+  if (year >= ay[n - 1]) {
+    var rate = 1 / (ay[n - 1] - ay[n - 2]);
+    return ap[n - 1] + (year - ay[n - 1]) * rate;
+  }
+  for (var i = 0; i < n - 1; i++) {
+    if (year >= ay[i] && year <= ay[i + 1]) {
+      var t = (year - ay[i]) / (ay[i + 1] - ay[i]);
+      return ap[i] + t;
+    }
+  }
+  return 0;
+}
+
+// Build aligned dataset: warp years + normalize values into lane
+function prepareAlignedData(data, key) {
+  var vlo = Infinity, vhi = -Infinity;
+  for (var i = 0; i < data.length; i++) {
+    if (data[i].val < vlo) vlo = data[i].val;
+    if (data[i].val > vhi) vhi = data[i].val;
+  }
+  var vRange = vhi - vlo || 1;
+  var lane = alignLanes[key];
+  var result = [];
+  for (var i = 0; i < data.length; i++) {
+    var copy = {};
+    for (var k in data[i]) { if (data[i].hasOwnProperty(k)) copy[k] = data[i][k]; }
+    copy.origYear = data[i].year;
+    copy.year = warpYear(data[i].year, key);
+    copy.val = lane[0] + ((data[i].val - vlo) / vRange) * (lane[1] - lane[0]);
+    result.push(copy);
+  }
+  return result;
+}
+
+// Draw anchor markers (diamonds) at aligned anchor positions
+function drawAnchorDots(prepData, key, color) {
+  ctx.save();
+  for (var a = 0; a < alignAnchors.length; a++) {
+    var anchorYr = alignAnchors[a][key];
+    for (var i = 0; i < prepData.length; i++) {
+      if (prepData[i].origYear === anchorYr) {
+        var x = xOf(prepData[i].year);
+        var y = yOf(prepData[i].val);
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(Math.PI / 4);
+        ctx.fillStyle = '#ffffff';
+        ctx.shadowColor = color;
+        ctx.shadowBlur = 14;
+        ctx.fillRect(-5.5, -5.5, 11, 11);
+        ctx.restore();
+        break;
+      }
+    }
+  }
+  ctx.restore();
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// DATA — Aviation (1480 → 2026)
+// Y = "Capability Index" 0–100: composite of speed, range, payload,
+// deployment scale, and societal impact. Internally consistent.
+// ═══════════════════════════════════════════════════════════════════
+var aviationData = [
+  { year: 1480, val: 1, event: true, title: "Da Vinci's Flying Machine Sketches", desc: "Leonardo da Vinci designs ornithopters and helicopter-like devices. Purely conceptual — no engines exist.", tag: "Concept", tagColor: AV_COLOR },
+  { year: 1783, val: 3, event: true, title: "Montgolfier Hot-Air Balloon", desc: "First manned balloon flight in Paris. Controlled ascent achieved, but no steering or propulsion.", tag: "Milestone", tagColor: AV_COLOR },
+  { year: 1890, val: 5, event: true, title: "Lilienthal's Controlled Glider Flights", desc: "Otto Lilienthal performs 2,000+ glider flights — the first systematic aerodynamic experiments.", tag: "Experiment", tagColor: AV_COLOR },
+  { year: 1903, val: 10, event: true, title: "Wright Brothers — First Powered Flight", desc: "12 seconds, 120 feet at Kitty Hawk. Many experts had believed powered flight was impossible.", tag: "Black Swan", tagColor: '#ffffff' },
+  { year: 1909, val: 15, event: true, title: "Blériot Crosses the English Channel", desc: "Louis Blériot flies 22 miles across the Channel in 37 minutes. Aviation proves it can conquer geography.", tag: "Milestone", tagColor: AV_COLOR },
+  { year: 1914, val: 25, event: true, title: "WWI — Aviation Militarized", desc: "Military demand transforms fragile biplanes into fighters and bombers. Speed jumps from ~40 to 150+ mph in under 15 years.", tag: "Black Swan", tagColor: '#ffffff' },
+  { year: 1918, val: 32, event: true, title: "WWI Ends — Aviation Industrialized", desc: "War created a vast aviation industry. Surplus aircraft and trained pilots fuel barnstorming and airmail.", tag: "Inflection", tagColor: AV_COLOR },
+  { year: 1919, val: 34, event: true, title: "First Nonstop Transatlantic Flight", desc: "Alcock & Brown fly from Newfoundland to Ireland in 16 hours. The Atlantic is conquerable by air.", tag: "Milestone", tagColor: AV_COLOR },
+  { year: 1927, val: 38, event: true, title: "Lindbergh Crosses the Atlantic Solo", desc: "33.5 hours, New York to Paris. Captures global imagination and transforms public perception of aviation.", tag: "Milestone", tagColor: AV_COLOR },
+  { year: 1930, val: 40, event: true, title: "Jet Engine Patented (Whittle)", desc: "Frank Whittle patents the turbojet engine. The theoretical foundation for the jet age is laid.", tag: "Theory", tagColor: AV_COLOR },
+  { year: 1935, val: 44, event: true, title: "DC-3 — Modern Airliner Born", desc: "The DC-3 makes commercial aviation economically viable. Airlines can profit from passengers alone.", tag: "Inflection", tagColor: AV_COLOR },
+  { year: 1937, val: 45, event: true, title: "Hindenburg Disaster", desc: "The Hindenburg explodes on film, ending the airship era overnight. Heavier-than-air wins permanently.", tag: "Setback", tagColor: AV_COLOR },
+  { year: 1939, val: 48, event: true, title: "First Jet Flight (He 178)", desc: "Germany's Heinkel He 178 makes the first jet-powered flight. The piston engine's days are numbered.", tag: "Black Swan", tagColor: '#ffffff' },
+  { year: 1944, val: 60, event: true, title: "WWII — Jets, Radar, Pressurization", desc: "War drives explosive innovation. Me 262 jet fighter, pressurized cabins, radar. Speeds approach 500+ mph.", tag: "Black Swan", tagColor: '#ffffff' },
+  { year: 1947, val: 68, event: true, title: "Sound Barrier Broken (Mach 1)", desc: "Chuck Yeager breaks Mach 1 in the Bell X-1. The last great physical frontier of flight falls.", tag: "Black Swan", tagColor: '#ffffff' },
+  { year: 1949, val: 71, event: true, title: "de Havilland Comet — First Jet Airliner", desc: "First commercial jet airliner enters service, though metal fatigue crashes will halt it.", tag: "Milestone", tagColor: AV_COLOR },
+  { year: 1952, val: 73 },
+  { year: 1958, val: 77, event: true, title: "Boeing 707 — Jet Age Begins", desc: "Pan Am transatlantic 707 service. Intercontinental jet travel becomes routine. The world shrinks.", tag: "Inflection", tagColor: AV_COLOR },
+  { year: 1961, val: 79, event: true, title: "Gagarin in Space", desc: "Yuri Gagarin orbits Earth. Aviation technology literally leaves the planet.", tag: "Milestone", tagColor: AV_COLOR },
+  { year: 1967, val: 82, event: true, title: "X-15 Reaches Mach 6.7", desc: "The X-15 hits 4,520 mph — fastest crewed aircraft ever. Hypersonic flight achieved.", tag: "Peak", tagColor: AV_COLOR },
+  { year: 1969, val: 86, event: true, title: "Boeing 747 & Concorde", desc: "The 747 (400+ seats) democratizes mass travel. Concorde achieves Mach 2 passenger flight. Aviation's twin peaks.", tag: "Black Swan", tagColor: '#ffffff' },
+  { year: 1976, val: 89, event: true, title: "Concorde Enters Service", desc: "London to New York in 3.5 hours at Mach 2. The pinnacle of commercial speed — never surpassed.", tag: "Peak", tagColor: AV_COLOR },
+  { year: 1981, val: 90, event: true, title: "Space Shuttle First Flight", desc: "Columbia launches — the first reusable spacecraft. Aerospace complexity reaches its zenith.", tag: "Milestone", tagColor: AV_COLOR },
+  { year: 1988, val: 91 },
+  { year: 1994, val: 92, event: true, title: "Boeing 777 — Fly-by-Wire Widebody", desc: "First fully digital fly-by-wire airliner. Progress is now optimization, not revolution.", tag: "Incremental", tagColor: AV_COLOR },
+  { year: 2000, val: 92, event: true, title: "Concorde Crash", desc: "Air France Concorde crashes in Paris. Speed ambitions end. Safety and efficiency dominate.", tag: "Setback", tagColor: AV_COLOR },
+  { year: 2003, val: 92, event: true, title: "Concorde Retired", desc: "The only supersonic airliner retires. Aviation regresses in speed — a rare technological reversal.", tag: "Setback", tagColor: AV_COLOR },
+  { year: 2005, val: 92, event: true, title: "Airbus A380", desc: "World's largest passenger aircraft. A monument to scale, not speed — confirming the plateau.", tag: "Incremental", tagColor: AV_COLOR },
+  { year: 2011, val: 93, event: true, title: "Boeing 787 Dreamliner", desc: "Carbon-fiber composite airliner. An engineering marvel of efficiency — but cruises at the same speed.", tag: "Incremental", tagColor: AV_COLOR },
+  { year: 2020, val: 93 },
+  { year: 2024, val: 94, event: true, title: "eVTOL & Boom Supersonic Development", desc: "Urban air taxis and supersonic jets in development. Aviation's next leap is promised but not yet delivered.", tag: "Emerging", tagColor: AV_COLOR },
+  { year: 2026, val: 94 },
+];
+
+// ═══════════════════════════════════════════════════════════════════
+// DATA — Nuclear Fission (400 BCE → 2026)
+// ═══════════════════════════════════════════════════════════════════
+var nuclearData = [
+  { year: 1803, val: 2, event: true, title: "Dalton's Modern Atomic Theory", desc: "John Dalton proposes that elements consist of indivisible atoms. The atom becomes a scientific object.", tag: "Theory", tagColor: NU_COLOR },
+  { year: 1869, val: 3, event: true, title: "Mendeleev's Periodic Table", desc: "The periodic table suggests deep atomic structure. A roadmap for the elements.", tag: "Theory", tagColor: NU_COLOR },
+  { year: 1896, val: 5, event: true, title: "Becquerel Discovers Radioactivity", desc: "Henri Becquerel finds uranium emits invisible radiation. The atom is not inert — it radiates energy.", tag: "Discovery", tagColor: NU_COLOR },
+  { year: 1898, val: 6, event: true, title: "Curies Isolate Radium & Polonium", desc: "Marie and Pierre Curie isolate new radioactive elements, proving radioactivity is an atomic property.", tag: "Discovery", tagColor: NU_COLOR },
+  { year: 1905, val: 8, event: true, title: "Einstein Publishes E = mc²", desc: "Mass–energy equivalence reveals matter contains enormous energy. The theoretical key to nuclear power.", tag: "Theory", tagColor: NU_COLOR },
+  { year: 1911, val: 10, event: true, title: "Rutherford Discovers the Nucleus", desc: "Gold foil experiment reveals a dense atomic core. The architecture of the atom is uncovered.", tag: "Discovery", tagColor: NU_COLOR },
+  { year: 1913, val: 11, event: true, title: "Bohr's Quantum Atom Model", desc: "Niels Bohr places electrons in discrete orbits, unifying quantum theory with atomic structure.", tag: "Theory", tagColor: NU_COLOR },
+  { year: 1919, val: 12, event: true, title: "Rutherford Splits the Atom", desc: "First artificial nuclear transmutation — nitrogen into oxygen via alpha particle bombardment.", tag: "Breakthrough", tagColor: NU_COLOR },
+  { year: 1925, val: 13 },
+  { year: 1932, val: 15, event: true, title: "Neutron Discovered (Chadwick)", desc: "The uncharged neutron is found — the particle that will make fission chain reactions possible.", tag: "Discovery", tagColor: NU_COLOR },
+  { year: 1934, val: 17, event: true, title: "Fermi's Neutron Bombardment", desc: "Fermi bombards elements with neutrons, unknowingly achieving fission. Results puzzle physicists.", tag: "Experiment", tagColor: NU_COLOR },
+  { year: 1938, val: 22, event: true, title: "Nuclear Fission Discovered", desc: "Hahn & Strassmann split uranium. Meitner & Frisch explain the physics. Nobody predicted this.", tag: "Black Swan", tagColor: '#ffffff' },
+  { year: 1939, val: 28, event: true, title: "Einstein-Szilárd Letter to FDR", desc: "Einstein warns Roosevelt that Germany may build an atomic bomb. The Manhattan Project is triggered.", tag: "Catalyst", tagColor: NU_COLOR },
+  { year: 1942, val: 48, event: true, title: "Chicago Pile-1 — First Reactor", desc: "Fermi achieves the first self-sustaining chain reaction under a football stadium. Nuclear engineering is born.", tag: "Black Swan", tagColor: '#ffffff' },
+  { year: 1945, val: 70, event: true, title: "Trinity, Hiroshima & Nagasaki", desc: "First nuclear bomb detonated. Then dropped on two cities. 200,000+ killed. Geopolitics permanently altered.", tag: "Black Swan", tagColor: '#ffffff' },
+  { year: 1949, val: 73, event: true, title: "Soviet Union Tests First Bomb", desc: "USSR detonates 'First Lightning.' The nuclear arms race begins, reshaping the world for decades.", tag: "Arms Race", tagColor: NU_COLOR },
+  { year: 1951, val: 76, event: true, title: "First Nuclear Electricity (EBR-I)", desc: "EBR-I in Idaho generates electricity from nuclear energy for the first time — enough for four light bulbs.", tag: "Milestone", tagColor: NU_COLOR },
+  { year: 1952, val: 78, event: true, title: "First Hydrogen Bomb (Ivy Mike)", desc: "10.4 megatons — 700x Hiroshima. The thermonuclear age begins. Apocalyptic destructive power achieved.", tag: "Arms Race", tagColor: NU_COLOR },
+  { year: 1954, val: 80, event: true, title: "Obninsk — First Nuclear Power Plant", desc: "USSR connects the first nuclear plant to a grid. USS Nautilus launches as first nuclear submarine.", tag: "Inflection", tagColor: NU_COLOR },
+  { year: 1957, val: 82, event: true, title: "Shippingport & IAEA Founded", desc: "First full-scale US nuclear plant. IAEA founded. 'Electricity too cheap to meter' is promised.", tag: "Industry", tagColor: NU_COLOR },
+  { year: 1962, val: 84, event: true, title: "Cuban Missile Crisis", desc: "13 days at the brink of nuclear war. Fundamentally reshapes deterrence doctrine worldwide.", tag: "Crisis", tagColor: NU_COLOR },
+  { year: 1968, val: 86, event: true, title: "Nuclear Non-Proliferation Treaty", desc: "NPT signed to limit nuclear weapons spread while permitting peaceful use. 191 signatories.", tag: "Policy", tagColor: NU_COLOR },
+  { year: 1973, val: 89, event: true, title: "Nuclear Power Peaks — Oil Crisis", desc: "Oil crisis drives massive nuclear construction. 50+ US reactors under construction. Peak expansion.", tag: "Peak", tagColor: NU_COLOR },
+  { year: 1979, val: 85, event: true, title: "Three Mile Island Accident", desc: "Partial meltdown. No deaths, but public trust is shattered. New US plant orders stop entirely.", tag: "Black Swan", tagColor: '#ffffff' },
+  { year: 1986, val: 80, event: true, title: "Chernobyl Disaster", desc: "Reactor 4 explodes. Radiation across Europe. Worst nuclear accident in history. Global backlash.", tag: "Black Swan", tagColor: '#ffffff' },
+  { year: 1991, val: 81, event: true, title: "Soviet Collapse — Loose Nukes Fear", desc: "USSR dissolves. 27,000+ warheads across 4 new nations. The most dangerous nuclear moment since Cuba.", tag: "Crisis", tagColor: NU_COLOR },
+  { year: 1996, val: 82, event: true, title: "Comprehensive Test Ban Treaty", desc: "CTBT bans all nuclear test explosions. 185 nations sign, though key holdouts remain.", tag: "Policy", tagColor: NU_COLOR },
+  { year: 2005, val: 83, event: true, title: "Nuclear Renaissance Begins", desc: "Oil prices and climate concerns spark renewed interest. Several countries announce new reactor plans.", tag: "Revival", tagColor: NU_COLOR },
+  { year: 2011, val: 80, event: true, title: "Fukushima Daiichi Disaster", desc: "Earthquake + tsunami cause triple meltdown. Germany announces full phase-out. Another global setback.", tag: "Black Swan", tagColor: '#ffffff' },
+  { year: 2015, val: 81 },
+  { year: 2020, val: 82 },
+  { year: 2022, val: 83, event: true, title: "NIF Achieves Fusion Ignition", desc: "Lawrence Livermore achieves net energy gain from fusion. A potential second exponential phase beckons.", tag: "Emerging", tagColor: NU_COLOR },
+  { year: 2024, val: 84, event: true, title: "SMRs Gain Regulatory Approval", desc: "NuScale and others receive approvals for small modular reactors. Safer, cheaper, scalable nuclear.", tag: "Emerging", tagColor: NU_COLOR },
+  { year: 2026, val: 84 },
+];
+
+// ═══════════════════════════════════════════════════════════════════
+// DATA — Artificial Intelligence (1943 → 2026)
+// ═══════════════════════════════════════════════════════════════════
+var aiData = [
+  { year: 1943, val: 2, event: true, title: "McCulloch-Pitts Neural Model", desc: "First mathematical model of an artificial neuron. The theoretical foundation of neural networks.", tag: "Theory", tagColor: AI_COLOR },
+  { year: 1950, val: 4, event: true, title: "Turing's 'Can Machines Think?'", desc: "Alan Turing proposes the Turing Test. The question that formally launched AI as a pursuit.", tag: "Theory", tagColor: AI_COLOR },
+  { year: 1952, val: 5, event: true, title: "Samuel's Self-Learning Checkers", desc: "Arthur Samuel at IBM creates a program that learns from experience, coining 'machine learning.'", tag: "Origin", tagColor: AI_COLOR },
+  { year: 1956, val: 7, event: true, title: "Dartmouth Workshop — AI is Born", desc: "McCarthy, Minsky, and colleagues coin 'Artificial Intelligence.' A new scientific discipline is founded.", tag: "Founding", tagColor: AI_COLOR },
+  { year: 1958, val: 10, event: true, title: "Perceptron & LISP Created", desc: "Rosenblatt builds the Perceptron (first neural net). McCarthy creates LISP. Both foundational.", tag: "Breakthrough", tagColor: AI_COLOR },
+  { year: 1964, val: 12, event: true, title: "ELIZA Chatbot", desc: "Weizenbaum's ELIZA simulates a therapist. Users form emotional bonds — revealing anthropomorphism.", tag: "NLP", tagColor: AI_COLOR },
+  { year: 1966, val: 13, event: true, title: "Shakey the Robot", desc: "SRI's Shakey reasons about its own actions. First general-purpose mobile robot.", tag: "Robotics", tagColor: AI_COLOR },
+  { year: 1969, val: 13, event: true, title: "Minsky & Papert's 'Perceptrons'", desc: "Exposes limitations of single-layer perceptrons. Dampens neural network funding for a decade.", tag: "Setback", tagColor: AI_COLOR },
+  { year: 1974, val: 10, event: true, title: "First AI Winter Begins", desc: "The Lighthill Report triggers funding collapse. Overpromised symbolic AI fails to deliver.", tag: "Black Swan", tagColor: '#ffffff' },
+  { year: 1980, val: 16, event: true, title: "Expert Systems Boom", desc: "XCON saves DEC $40M/year. Japan's Fifth Generation Project launches. Billions flow into AI.", tag: "Boom", tagColor: AI_COLOR },
+  { year: 1986, val: 20, event: true, title: "Backpropagation Rediscovered", desc: "Hinton, Rumelhart & Williams show backprop can train multi-layer nets. Foundational — but impact delayed.", tag: "Black Swan", tagColor: '#ffffff' },
+  { year: 1988, val: 15, event: true, title: "Second AI Winter", desc: "Expert systems bubble bursts. LISP machine market collapses. Billions evaporate. AI enters the wilderness.", tag: "Black Swan", tagColor: '#ffffff' },
+  { year: 1993, val: 17 },
+  { year: 1997, val: 21, event: true, title: "Deep Blue Defeats Kasparov", desc: "IBM's Deep Blue beats the world chess champion. Machines surpass humans in narrow domains.", tag: "Milestone", tagColor: AI_COLOR },
+  { year: 1998, val: 22, event: true, title: "LSTM Networks", desc: "Hochreiter & Schmidhuber solve the vanishing gradient problem. Sequential data becomes tractable.", tag: "Breakthrough", tagColor: AI_COLOR },
+  { year: 2006, val: 26, event: true, title: "Deep Learning Renaissance", desc: "Hinton's deep belief networks reignite neural network research. 'Deep learning' enters the lexicon.", tag: "Inflection", tagColor: AI_COLOR },
+  { year: 2009, val: 29, event: true, title: "ImageNet Created", desc: "Fei-Fei Li's team releases 14 million labeled images — the dataset that will ignite the CV revolution.", tag: "Data", tagColor: AI_COLOR },
+  { year: 2011, val: 33, event: true, title: "Watson Wins Jeopardy! / Siri Ships", desc: "IBM Watson beats champions. Apple ships Siri. AI enters living rooms for the first time.", tag: "Mainstream", tagColor: AI_COLOR },
+  { year: 2012, val: 38, event: true, title: "AlexNet — The ImageNet Moment", desc: "Krizhevsky's deep CNN crushes ImageNet by 10+ points. The entire field pivots overnight. Modern AI begins.", tag: "Black Swan", tagColor: '#ffffff' },
+  { year: 2014, val: 43, event: true, title: "GANs Introduced", desc: "Goodfellow's Generative Adversarial Networks — two nets competing. The birth of modern generative AI.", tag: "Breakthrough", tagColor: AI_COLOR },
+  { year: 2015, val: 47, event: true, title: "ResNet & TensorFlow", desc: "ResNet (152 layers!) wins ImageNet. Google open-sources TensorFlow, democratizing deep learning.", tag: "Infrastructure", tagColor: AI_COLOR },
+  { year: 2016, val: 52, event: true, title: "AlphaGo Defeats Lee Sedol", desc: "DeepMind's AlphaGo beats the world Go champion 4-1. Predicted to be decades away. It happened now.", tag: "Black Swan", tagColor: '#ffffff' },
+  { year: 2017, val: 57, event: true, title: "Transformer — 'Attention Is All You Need'", desc: "Google introduces the architecture behind every modern AI model. Equivalent to discovering fission.", tag: "Black Swan", tagColor: '#ffffff' },
+  { year: 2018, val: 60, event: true, title: "BERT & GPT-1", desc: "Pre-training on massive text unlocks remarkable language understanding. The LLM paradigm is born.", tag: "LLMs", tagColor: AI_COLOR },
+  { year: 2019, val: 63, event: true, title: "GPT-2 — 'Too Dangerous to Release'", desc: "OpenAI withholds GPT-2 over misuse fears. The AI safety debate begins in earnest.", tag: "Safety", tagColor: AI_COLOR },
+  { year: 2020, val: 68, event: true, title: "GPT-3 (175B Parameters)", desc: "Few-shot learning stuns researchers. GPT-3 writes, codes, and reasons from simple prompts.", tag: "Inflection", tagColor: AI_COLOR },
+  { year: 2020.5, val: 70, event: true, title: "AlphaFold 2 Solves Protein Folding", desc: "DeepMind cracks the 50-year biology problem. 200M+ protein structures predicted. Science transformed.", tag: "Black Swan", tagColor: '#ffffff' },
+  { year: 2021, val: 73, event: true, title: "DALL-E & Diffusion Models", desc: "Text-to-image generation explodes. Photorealistic image synthesis from prompts becomes accessible.", tag: "Generative AI", tagColor: AI_COLOR },
+  { year: 2022, val: 78, event: true, title: "ChatGPT Goes Viral", desc: "100M users in 2 months — fastest tech adoption in history. AI enters mainstream consciousness overnight.", tag: "Black Swan", tagColor: '#ffffff' },
+  { year: 2023, val: 85, event: true, title: "GPT-4, Claude, Gemini", desc: "Multimodal frontier models see images, reason about code, pass professional exams. AI arms race intensifies.", tag: "Multimodal", tagColor: AI_COLOR },
+  { year: 2024, val: 91, event: true, title: "Reasoning Models & AI Agents", desc: "Chain-of-thought reasoning (o1). Autonomous agents browse, code, deploy. Open-source closes the gap.", tag: "Frontier", tagColor: AI_COLOR },
+  { year: 2025, val: 95, event: true, title: "AI Video & World Models", desc: "Cinematic AI video. Internal world models understanding physics. AI deeply embedded in every industry.", tag: "Frontier", tagColor: AI_COLOR },
+  { year: 2026, val: 98, event: true, title: "Agentic AI Goes Mainstream", desc: "AI agents manage end-to-end workflows. The shift from chat to agents redefines human-computer interaction.", tag: "Present Day", tagColor: AI_COLOR },
+];
+
+// ═══════════════════════════════════════════════════════════════════
+// CANVAS SETUP
+// ═══════════════════════════════════════════════════════════════════
+var canvas  = document.getElementById('chart');
+var ctx     = canvas.getContext('2d');
+var tooltip = document.getElementById('tooltip');
+var DPR = 1, W = 0, H = 0;
+var PAD = { top: 30, right: 40, bottom: 50, left: 64 };
+var allPoints = [];
+
+// Dynamic axis range — computed from visible datasets
+var MIN_YEAR = 1480, MAX_YEAR = 2030;
+// Animation targets & current interpolated values
+var targetMin = 1480, targetMax = 2030;
+var animMin   = 1480, animMax   = 2030;
+var animFrame = null;
+
+function computeRange() {
+  var sources = [];
+  var keys = [];
+  if (show.ai) { sources.push(aiData); keys.push('ai'); }
+  if (show.av) { sources.push(aviationData); keys.push('av'); }
+  if (show.nu) { sources.push(nuclearData); keys.push('nu'); }
+  // if nothing visible, keep full range
+  if (sources.length === 0) return;
+
+  var datasets = [];
+  for (var s = 0; s < sources.length; s++) {
+    datasets.push(aligned ? prepareAlignedData(sources[s], keys[s]) : sources[s]);
+  }
+
+  var lo = 9999, hi = -9999;
+  for (var d = 0; d < datasets.length; d++) {
+    for (var i = 0; i < datasets[d].length; i++) {
+      var yr = datasets[d][i].year;
+      if (yr < lo) lo = yr;
+      if (yr > hi) hi = yr;
+    }
+  }
+
+  if (aligned) {
+    // focus on the anchor region (0 to N-1) with comfortable padding
+    var anchorLo = 0;
+    var anchorHi = alignAnchors.length - 1;
+    var anchorSpan = anchorHi - anchorLo;
+    targetMin = anchorLo - anchorSpan * 0.25;
+    targetMax = anchorHi + anchorSpan * 0.25;
+  } else {
+    var span = hi - lo;
+    var pad = Math.max(span * 0.03, 5);
+    targetMin = Math.floor(lo - pad);
+    targetMax = Math.ceil(hi + pad);
+  }
+}
+
+function xOf(yr) { return PAD.left + (yr - animMin) / (animMax - animMin) * (W - PAD.left - PAD.right); }
+function yOf(v)  { return PAD.top  + (1 - v / 100) * (H - PAD.top - PAD.bottom); }
+
+function hexToRgb(hex) {
+  var h = hex.replace('#', '');
+  if (h.length === 3) h = h[0]+h[0]+h[1]+h[1]+h[2]+h[2];
+  var n = parseInt(h, 16);
+  return ((n >> 16) & 255) + ',' + ((n >> 8) & 255) + ',' + (n & 255);
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// MONOTONE CUBIC SPLINE (Fritsch-Carlson)
+// Smooth curves that don't overshoot or wiggle.
+// ═══════════════════════════════════════════════════════════════════
+function spline(data) {
+  if (data.length < 2) return [];
+  var i, n = data.length;
+  var xs = [], ys = [];
+  for (i = 0; i < n; i++) { xs[i] = xOf(data[i].year); ys[i] = yOf(data[i].val); }
+  // ensure strictly increasing x
+  for (i = 1; i < n; i++) { if (xs[i] <= xs[i-1]) xs[i] = xs[i-1] + 0.5; }
+
+  var dx = [], dy = [], m = [];
+  for (i = 0; i < n-1; i++) {
+    dx[i] = xs[i+1] - xs[i];
+    dy[i] = ys[i+1] - ys[i];
+    m[i]  = dx[i] < 0.001 ? 0 : dy[i] / dx[i];
+  }
+  var tg = [m[0]];
+  for (i = 1; i < n-1; i++) tg[i] = (m[i-1]*m[i] <= 0) ? 0 : (m[i-1]+m[i])/2;
+  tg[n-1] = m[n-2];
+
+  for (i = 0; i < n-1; i++) {
+    if (Math.abs(m[i]) < 1e-10) { tg[i] = 0; tg[i+1] = 0; }
+    else {
+      var a = tg[i]/m[i], b = tg[i+1]/m[i], s = a*a + b*b;
+      if (s > 9) { var t = 3/Math.sqrt(s); tg[i] = t*a*m[i]; tg[i+1] = t*b*m[i]; }
+    }
+  }
+  var segs = [];
+  for (i = 0; i < n-1; i++) {
+    var d = dx[i]/3;
+    segs.push({ x0:xs[i], y0:ys[i], cx1:xs[i]+d, cy1:ys[i]+tg[i]*d, cx2:xs[i+1]-d, cy2:ys[i+1]-tg[i+1]*d, x1:xs[i+1], y1:ys[i+1] });
+  }
+  return segs;
+}
+
+function tracePath(segs) {
+  ctx.moveTo(segs[0].x0, segs[0].y0);
+  for (var i = 0; i < segs.length; i++) {
+    var s = segs[i];
+    ctx.bezierCurveTo(s.cx1, s.cy1, s.cx2, s.cy2, s.x1, s.y1);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// DRAWING FUNCTIONS
+// ═══════════════════════════════════════════════════════════════════
+function pickTickStep(range) {
+  // choose a nice tick interval based on the visible year range
+  if (range > 400) return 100;
+  if (range > 200) return 50;
+  if (range > 80)  return 20;
+  if (range > 40)  return 10;
+  return 5;
+}
+
+function drawAlignedGrid() {
+  var i, a, x;
+  ctx.save();
+
+  // lane config
+  var lk = ['ai', 'av', 'nu'];
+  var ln = ['AI', 'AVIATION', 'NUCLEAR'];
+  var lc = [AI_COLOR, AV_COLOR, NU_COLOR];
+
+  // draw lane backgrounds and domain labels
+  for (i = 0; i < 3; i++) {
+    var lane = alignLanes[lk[i]];
+    var yTop = yOf(lane[1]);
+    var yBot = yOf(lane[0]);
+    var rgb = hexToRgb(lc[i]);
+
+    // subtle tinted band
+    ctx.fillStyle = 'rgba(' + rgb + ',0.03)';
+    ctx.fillRect(PAD.left, yTop, W - PAD.left - PAD.right, yBot - yTop);
+
+    // domain name (top-left of lane)
+    ctx.font = '800 11px Space Grotesk';
+    ctx.fillStyle = 'rgba(' + rgb + ',0.2)';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+    ctx.fillText(ln[i], PAD.left + 6, yTop + 4);
+  }
+
+  // lane separator lines
+  var sep1 = yOf((alignLanes.ai[0] + alignLanes.av[1]) / 2);
+  var sep2 = yOf((alignLanes.av[0] + alignLanes.nu[1]) / 2);
+  ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([2, 4]);
+  ctx.beginPath(); ctx.moveTo(PAD.left, sep1); ctx.lineTo(W - PAD.right, sep1); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(PAD.left, sep2); ctx.lineTo(W - PAD.right, sep2); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // anchor vertical lines, labels, and per-lane year annotations
+  for (a = 0; a < alignAnchors.length; a++) {
+    x = xOf(a);
+
+    // vertical guide
+    ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([3, 5]);
+    ctx.beginPath(); ctx.moveTo(x, PAD.top); ctx.lineTo(x, H - PAD.bottom); ctx.stroke();
+    ctx.setLineDash([]);
+
+    // anchor label (above anchor description)
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    ctx.font = '700 13px Space Grotesk';
+    ctx.fillStyle = 'rgba(255,255,255,0.6)';
+    ctx.fillText(alignAnchors[a].label, x, PAD.top - 20);
+
+    // anchor description (top of chart)
+    ctx.font = '400 15px Inter';
+    ctx.fillStyle = 'rgba(255,255,255,0.28)';
+    ctx.fillText(alignAnchors[a].desc, x, PAD.top - 0);
+
+    // year annotations inside each lane
+    for (i = 0; i < 3; i++) {
+      if (!show[lk[i]]) continue;
+      var lane = alignLanes[lk[i]];
+      var rgb = hexToRgb(lc[i]);
+      ctx.font = '600 10px Space Grotesk';
+      ctx.fillStyle = 'rgba(' + rgb + ',0.5)';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
+      ctx.fillText(alignAnchors[a][lk[i]], x, yOf(lane[1]) + 16);
+    }
+  }
+
+  ctx.restore();
+}
+
+function drawGrid() {
+  if (aligned) { drawAlignedGrid(); return; }
+
+  var v, yr, x, y;
+  var range = animMax - animMin;
+  var step = pickTickStep(range);
+  // round start down to nearest step
+  var firstTick = Math.ceil(animMin / step) * step;
+
+  ctx.save();
+  // horizontal grid lines only (no numeric labels)
+  for (v = 0; v <= 100; v += 20) {
+    y = yOf(v);
+    ctx.strokeStyle = v === 0 ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.03)';
+    ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(PAD.left, y); ctx.lineTo(W-PAD.right, y); ctx.stroke();
+  }
+  // Y-axis label — informal disclaimer
+  ctx.save(); ctx.translate(14, H/2); ctx.rotate(-Math.PI/2);
+  ctx.font = '500 14px Inter'; ctx.fillStyle = '#3e4a5e'; ctx.textAlign = 'center';
+  ctx.fillText('Relative Perceived Progress (Arbitrary)', 50, 0); ctx.restore();
+
+  ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+  for (yr = firstTick; yr <= animMax; yr += step) {
+    x = xOf(yr);
+    if (x < PAD.left - 5 || x > W - PAD.right + 5) continue;
+    ctx.strokeStyle = 'rgba(255,255,255,0.03)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(x, PAD.top); ctx.lineTo(x, H-PAD.bottom); ctx.stroke();
+    ctx.fillStyle = '#3e4a5e'; ctx.font = '500 10px Inter';
+    ctx.fillText('' + yr, x, H-PAD.bottom+10);
+  }
+
+  // "now" marker at 2026
+  if (2026 >= animMin && 2026 <= animMax) {
+    x = xOf(2026);
+    ctx.strokeStyle = 'rgba(255,255,255,0.1)'; ctx.setLineDash([4,4]);
+    ctx.beginPath(); ctx.moveTo(x, PAD.top); ctx.lineTo(x, H-PAD.bottom); ctx.stroke();
+    ctx.setLineDash([]); ctx.fillStyle = '#4a5568'; ctx.font = '600 9px Inter'; ctx.fillText('2026', x, PAD.top-14);
+  }
+  ctx.restore();
+}
+
+function drawCurve(data, color, glowColor) {
+  var segs = spline(data);
+  if (!segs.length) return;
+  var rgb = hexToRgb(color);
+  var last = segs[segs.length-1];
+
+  ctx.save();
+  // glow
+  ctx.strokeStyle = glowColor; ctx.lineWidth = 8; ctx.filter = 'blur(6px)';
+  ctx.beginPath(); tracePath(segs); ctx.stroke(); ctx.filter = 'none';
+  // line
+  ctx.strokeStyle = color; ctx.lineWidth = 2.5; ctx.lineJoin = 'round';
+  ctx.beginPath(); tracePath(segs); ctx.stroke();
+  // area
+  ctx.beginPath(); tracePath(segs);
+  ctx.lineTo(last.x1, yOf(0)); ctx.lineTo(segs[0].x0, yOf(0)); ctx.closePath();
+  var grad = ctx.createLinearGradient(0, PAD.top, 0, H-PAD.bottom);
+  grad.addColorStop(0, 'rgba('+rgb+',0.08)'); grad.addColorStop(1, 'rgba('+rgb+',0)');
+  ctx.fillStyle = grad; ctx.fill();
+  ctx.restore();
+}
+
+function drawDots(data, color, series) {
+  for (var i = 0; i < data.length; i++) {
+    var pt = data[i];
+    if (!pt.event) continue;
+    var x = xOf(pt.year), y = yOf(pt.val);
+    var isBS = pt.tag === 'Black Swan';
+    var displayYr = pt.origYear ? pt.origYear : pt.year;
+    allPoints.push({ x:x, y:y, year:displayYr, title:pt.title, desc:pt.desc, tag:pt.tag, tagColor:pt.tagColor, color:color, series:series });
+
+    ctx.save();
+    if (isBS) {
+      ctx.translate(x, y); ctx.rotate(Math.PI/4);
+      ctx.fillStyle = '#ffffff'; ctx.shadowColor = 'rgba(255,255,255,0.5)'; ctx.shadowBlur = 10;
+      ctx.fillRect(-4.5, -4.5, 9, 9);
+    } else {
+      ctx.beginPath(); ctx.arc(x, y, 4, 0, Math.PI*2);
+      ctx.fillStyle = '#08090f'; ctx.fill();
+      ctx.lineWidth = 2; ctx.strokeStyle = color; ctx.stroke();
+    }
+    ctx.restore();
+  }
+}
+
+function visibleCount() {
+  var c = 0;
+  if (show.ai) c++;
+  if (show.av) c++;
+  if (show.nu) c++;
+  return c;
+}
+
+function drawLabels(data, color) {
+  // collect non-Black-Swan events with screen positions
+  var labels = [];
+  var i, pt, x, y;
+  for (i = 0; i < data.length; i++) {
+    pt = data[i];
+    if (!pt.event || pt.tag === 'Black Swan') continue;
+    x = xOf(pt.year);
+    y = yOf(pt.val);
+    // skip if off-screen
+    if (x < PAD.left || x > W - PAD.right) continue;
+    labels.push({ x: x, y: y, title: pt.title, year: pt.year });
+  }
+  if (!labels.length) return;
+
+  ctx.save();
+  ctx.font = '500 9px Inter';
+  ctx.textBaseline = 'middle';
+
+  var rgb = hexToRgb(color);
+  // measure all labels and do greedy placement avoiding overlap
+  var placed = []; // array of { left, right, top, bottom }
+  var LABEL_H = 12;
+  var STEM = 18;    // length of connector line from dot to label
+  var HPAD = 4;     // horizontal padding around text
+
+  for (i = 0; i < labels.length; i++) {
+    var lb = labels[i];
+    // truncate long titles
+    var txt = lb.title;
+    if (txt.length > 28) txt = txt.substring(0, 26) + '...';
+    var tw = ctx.measureText(txt).width;
+
+    // try placing above, then below, then skip
+    var candidates = [
+      { ty: lb.y - STEM, align: 'center', stemDir: 1 },   // above
+      { ty: lb.y + STEM, align: 'center', stemDir: -1 }    // below
+    ];
+
+    var didPlace = false;
+    for (var c = 0; c < candidates.length; c++) {
+      var cand = candidates[c];
+      var lx = lb.x - tw / 2 - HPAD;
+      var rx = lb.x + tw / 2 + HPAD;
+      var ty = cand.ty - LABEL_H / 2;
+      var by = cand.ty + LABEL_H / 2;
+
+      // check bounds
+      if (lx < PAD.left || rx > W - PAD.right) continue;
+      if (ty < PAD.top || by > H - PAD.bottom) continue;
+
+      // check overlap with already placed labels
+      var overlaps = false;
+      for (var p = 0; p < placed.length; p++) {
+        if (lx < placed[p].right && rx > placed[p].left && ty < placed[p].bottom && by > placed[p].top) {
+          overlaps = true;
+          break;
+        }
+      }
+      if (overlaps) continue;
+
+      // place it
+      placed.push({ left: lx, right: rx, top: ty, bottom: by });
+
+      // draw thin connector line from dot to label
+      ctx.beginPath();
+      ctx.strokeStyle = 'rgba(' + rgb + ',0.25)';
+      ctx.lineWidth = 0.5;
+      ctx.moveTo(lb.x, lb.y + (cand.stemDir > 0 ? -5 : 5));
+      ctx.lineTo(lb.x, cand.ty);
+      ctx.stroke();
+
+      // draw label text
+      ctx.textAlign = 'center';
+      ctx.fillStyle = 'rgba(' + rgb + ',0.7)';
+      ctx.fillText(txt, lb.x, cand.ty);
+
+      didPlace = true;
+      break;
+    }
+  }
+  ctx.restore();
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// MAIN RENDER — called on resize AND toggle
+// ═══════════════════════════════════════════════════════════════════
+function renderFrame() {
+  // full context reset — prevents ALL state leakage
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  ctx.globalAlpha = 1;
+  ctx.filter = 'none';
+  ctx.shadowBlur = 0;
+  ctx.shadowColor = 'transparent';
+  ctx.setLineDash([]);
+  ctx.clearRect(0, 0, W, H);
+  allPoints = [];
+
+  drawGrid();
+
+  // prepare data — warp if aligned
+  var avD, nuD, aiD;
+  if (aligned) {
+    avD = prepareAlignedData(aviationData, 'av');
+    nuD = prepareAlignedData(nuclearData,  'nu');
+    aiD = prepareAlignedData(aiData,       'ai');
+  } else {
+    avD = aviationData;
+    nuD = nuclearData;
+    aiD = aiData;
+  }
+
+  // ghost traces for hidden series
+  var ghosts = [{k:'av',d:avD},{k:'nu',d:nuD},{k:'ai',d:aiD}];
+  for (var g = 0; g < ghosts.length; g++) {
+    if (!show[ghosts[g].k]) {
+      ctx.save(); ctx.globalAlpha = 0.07;
+      drawCurve(ghosts[g].d, GHOST, 'transparent');
+      ctx.restore();
+    }
+  }
+
+  // visible curves (back to front — AI on top)
+  if (show.av) drawCurve(avD, AV_COLOR, 'rgba(245,158,11,0.15)');
+  if (show.nu) drawCurve(nuD, NU_COLOR, 'rgba(239,68,68,0.15)');
+  if (show.ai) drawCurve(aiD, AI_COLOR, 'rgba(0,212,255,0.18)');
+
+  // event dots
+  if (show.av) drawDots(avD, AV_COLOR, 'Aviation');
+  if (show.nu) drawDots(nuD, NU_COLOR, 'Nuclear Fission');
+  if (show.ai) drawDots(aiD, AI_COLOR, 'AI');
+
+  if (aligned) {
+    // bright anchor markers at the aligned Black Swan events
+    if (show.av) drawAnchorDots(avD, 'av', AV_COLOR);
+    if (show.nu) drawAnchorDots(nuD, 'nu', NU_COLOR);
+    if (show.ai) drawAnchorDots(aiD, 'ai', AI_COLOR);
+  } else if (visibleCount() === 1) {
+    // inline labels — only in normal mode with single domain
+    if (show.av) drawLabels(avD, AV_COLOR);
+    if (show.nu) drawLabels(nuD, NU_COLOR);
+    if (show.ai) drawLabels(aiD, AI_COLOR);
+  }
+}
+
+function render() {
+  computeRange();
+  // animate from current axis range to new target
+  if (animFrame) cancelAnimationFrame(animFrame);
+  var startMin = animMin, startMax = animMax;
+  var diffMin = targetMin - startMin, diffMax = targetMax - startMax;
+  // if no change needed, just draw
+  if (Math.abs(diffMin) < 1 && Math.abs(diffMax) < 1) {
+    animMin = targetMin; animMax = targetMax;
+    renderFrame();
+    return;
+  }
+  var duration = 400; // ms
+  var startTime = null;
+  function easeOut(t) { return 1 - Math.pow(1 - t, 3); }
+  function step(ts) {
+    if (!startTime) startTime = ts;
+    var elapsed = ts - startTime;
+    var t = Math.min(elapsed / duration, 1);
+    var e = easeOut(t);
+    animMin = startMin + diffMin * e;
+    animMax = startMax + diffMax * e;
+    renderFrame();
+    if (t < 1) { animFrame = requestAnimationFrame(step); }
+    else { animFrame = null; }
+  }
+  animFrame = requestAnimationFrame(step);
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// RESIZE
+// ═══════════════════════════════════════════════════════════════════
+function onResize() {
+  var rect = canvas.parentElement.getBoundingClientRect();
+  DPR = window.devicePixelRatio || 1;
+  W = rect.width; H = rect.height;
+  canvas.width  = W * DPR;
+  canvas.height = H * DPR;
+  canvas.style.width  = W + 'px';
+  canvas.style.height = H + 'px';
+  // on resize, snap immediately (no animation)
+  computeRange();
+  animMin = targetMin; animMax = targetMax;
+  renderFrame();
+}
+window.addEventListener('resize', onResize);
+onResize();
+
+// ═══════════════════════════════════════════════════════════════════
+// TOOLTIP
+// ═══════════════════════════════════════════════════════════════════
+canvas.addEventListener('mousemove', function(e) {
+  var rect = canvas.getBoundingClientRect();
+  var mx = e.clientX - rect.left, my = e.clientY - rect.top;
+  var closest = null, minD = 999999;
+  for (var i = 0; i < allPoints.length; i++) {
+    var p = allPoints[i];
+    var d = Math.sqrt((p.x-mx)*(p.x-mx) + (p.y-my)*(p.y-my));
+    if (d < minD) { minD = d; closest = p; }
+  }
+  if (closest && minD < 22) {
+    var yr = Math.floor(closest.year);
+    document.getElementById('tt-year').textContent  = yr + ' — ' + closest.series;
+    document.getElementById('tt-year').style.color   = closest.color;
+    document.getElementById('tt-title').textContent  = closest.title;
+    document.getElementById('tt-desc').textContent   = closest.desc;
+    var tagEl = document.getElementById('tt-tag');
+    tagEl.textContent = closest.tag;
+    if (closest.tagColor === '#ffffff') {
+      tagEl.style.color = 'rgba(255,255,255,0.9)';
+      tagEl.style.background = 'rgba(255,255,255,0.1)';
+    } else {
+      tagEl.style.color = closest.color;
+      tagEl.style.background = 'rgba(' + hexToRgb(closest.color) + ',0.12)';
+    }
+    var tx = e.clientX + 16, ty = e.clientY - 10;
+    if (tx + 290 > window.innerWidth) tx = e.clientX - 296;
+    if (ty + 150 > window.innerHeight) ty = e.clientY - 140;
+    tooltip.style.left = tx + 'px'; tooltip.style.top = ty + 'px';
+    tooltip.classList.add('show');
+    canvas.style.cursor = 'pointer';
+  } else {
+    tooltip.classList.remove('show');
+    canvas.style.cursor = 'default';
+  }
+});
+canvas.addEventListener('mouseleave', function() { tooltip.classList.remove('show'); });
+</script>
+</body>
+</html>
