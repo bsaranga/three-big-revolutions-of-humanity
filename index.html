@@ -72,7 +72,8 @@
   .legend-item.nu .swatch { background: var(--nuclear); box-shadow: 0 0 8px var(--nuclear-glow); }
   .legend-item .diamond { width: 7px; height: 7px; border-radius: 1px; transform: rotate(45deg); flex-shrink: 0; }
   .legend-sep { width: 1px; height: 16px; background: var(--border); }
-  .legend-item.bswan { font-style: italic; color: var(--text3); cursor: default; }
+  .legend-item.bswan { font-style: italic; color: var(--text3); cursor: pointer; text-decoration: underline; text-decoration-color: rgba(255,255,255,0.2); text-underline-offset: 3px; transition: color 0.2s, text-decoration-color 0.2s; }
+  .legend-item.bswan:hover { color: var(--text); text-decoration-color: rgba(255,255,255,0.5); }
   .legend-item.bswan .diamond { background: #fff; border: 1px solid rgba(255,255,255,0.4); }
 
   .align-toggle {
@@ -120,7 +121,8 @@
 
   .insights {
     display: none; gap: 1rem; padding: 0 2.5rem 1.2rem;
-    flex-shrink: 0; flex-wrap: wrap; z-index: 2; position: relative;
+    flex-shrink: 0; flex-wrap: wrap; z-index: 0; position: relative;
+    pointer-events: none;
   }
   .insights.show {
     display: flex;
@@ -128,6 +130,7 @@
   .insight-card {
     flex: 1; min-width: 200px; background: var(--bg-card);
     border: 1px solid var(--border); border-radius: 12px; padding: 0.9rem 1.1rem;
+    pointer-events: auto;
   }
   .insight-card .ic-label { font-size: 0.6rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text3); margin-bottom: 4px; }
   .insight-card .ic-value { font-family: 'Space Grotesk', sans-serif; font-size: 1.1rem; font-weight: 700; }
@@ -145,7 +148,7 @@
   <div class="legend-item av toggleable" data-series="av" onclick="toggle('av')"><div class="swatch"></div><span class="legend-label">Aviation</span></div>
   <div class="legend-item nu toggleable" data-series="nu" onclick="toggle('nu')"><div class="swatch"></div><span class="legend-label">Nuclear Fission</span></div>
   <div class="legend-sep"></div>
-  <div class="legend-item bswan"><div class="diamond"></div> Black Swan Event</div>
+  <a class="legend-item bswan" href="https://en.wikipedia.org/wiki/Black_swan_theory" target="_blank" rel="noopener" style="text-decoration:none;color:inherit"><div class="diamond"></div> Black Swan Event</a>
   <div class="legend-sep"></div>
   <div class="align-toggle" id="alignToggle" onclick="toggleAlign()">
     <div class="toggle-track"><div class="toggle-thumb"></div></div>
@@ -227,6 +230,7 @@ function toggleAlign() {
 // these events line up on the X axis, and separated into Y lanes.
 // ═══════════════════════════════════════════════════════════════════
 var alignAnchors = [
+  { label: 'Key Theory',     desc: 'The theory that unlocked everything', av: 1890, nu: 1905, ai: 1950 },
   { label: 'First Proof',    desc: 'Proving the impossible possible',  av: 1903, nu: 1938, ai: 2012 },
   { label: 'New Paradigm',   desc: 'A fundamentally new approach',     av: 1939, nu: 1942, ai: 2017 },
   { label: 'Global Shock',   desc: 'The world changes overnight',      av: 1947, nu: 1945, ai: 2022 }
@@ -235,8 +239,8 @@ var alignAnchors = [
 // Y-axis lanes (capability index range each domain is mapped into)
 var alignLanes = {
   ai: [72, 97],
-  av: [38, 63],
-  nu: [3, 28]
+  av: [46, 71],
+  nu: [20, 45]
 };
 
 // Map an absolute year to a warped "anchor position" for a given domain
@@ -357,7 +361,7 @@ var nuclearData = [
   { year: 1869, val: 3, event: true, title: "Mendeleev's Periodic Table", desc: "The periodic table suggests deep atomic structure. A roadmap for the elements.", tag: "Theory", tagColor: NU_COLOR },
   { year: 1896, val: 5, event: true, title: "Becquerel Discovers Radioactivity", desc: "Henri Becquerel finds uranium emits invisible radiation. The atom is not inert — it radiates energy.", tag: "Discovery", tagColor: NU_COLOR },
   { year: 1898, val: 6, event: true, title: "Curies Isolate Radium & Polonium", desc: "Marie and Pierre Curie isolate new radioactive elements, proving radioactivity is an atomic property.", tag: "Discovery", tagColor: NU_COLOR },
-  { year: 1905, val: 8, event: true, title: "Einstein Publishes E = mc²", desc: "Mass–energy equivalence reveals matter contains enormous energy. The theoretical key to nuclear power.", tag: "Theory", tagColor: NU_COLOR },
+  { year: 1905, val: 8, event: true, title: "Einstein Publishes E = mc²", desc: "Mass–energy equivalence reveals matter contains enormous energy. The theoretical key to nuclear power.", tag: "Black Swan", tagColor: '#ffffff' },
   { year: 1911, val: 10, event: true, title: "Rutherford Discovers the Nucleus", desc: "Gold foil experiment reveals a dense atomic core. The architecture of the atom is uncovered.", tag: "Discovery", tagColor: NU_COLOR },
   { year: 1913, val: 11, event: true, title: "Bohr's Quantum Atom Model", desc: "Niels Bohr places electrons in discrete orbits, unifying quantum theory with atomic structure.", tag: "Theory", tagColor: NU_COLOR },
   { year: 1919, val: 12, event: true, title: "Rutherford Splits the Atom", desc: "First artificial nuclear transmutation — nitrogen into oxygen via alpha particle bombardment.", tag: "Breakthrough", tagColor: NU_COLOR },
@@ -737,34 +741,36 @@ function drawLabels(data, color) {
   if (!labels.length) return;
 
   ctx.save();
-  ctx.font = '500 9px Inter';
+  ctx.font = '500 11px Inter';
   ctx.textBaseline = 'middle';
 
   var rgb = hexToRgb(color);
   // measure all labels and do greedy placement avoiding overlap
   var placed = []; // array of { left, right, top, bottom }
-  var LABEL_H = 12;
+  var LABEL_H = 14;
+  var HPAD = 6;     // horizontal padding around text
+  var DOT_R = 5;    // clearance radius around the dot
   var STEM = 18;    // length of connector line from dot to label
-  var HPAD = 4;     // horizontal padding around text
 
+  // first pass: compute placements
+  var placements = [];
   for (i = 0; i < labels.length; i++) {
     var lb = labels[i];
-    // truncate long titles
     var txt = lb.title;
     if (txt.length > 28) txt = txt.substring(0, 26) + '...';
     var tw = ctx.measureText(txt).width;
 
     // try placing above, then below, then skip
     var candidates = [
-      { ty: lb.y - STEM, align: 'center', stemDir: 1 },   // above
-      { ty: lb.y + STEM, align: 'center', stemDir: -1 }    // below
+      { tx: lb.x, ty: lb.y - STEM },   // above
+      { tx: lb.x, ty: lb.y + STEM }     // below
     ];
 
     var didPlace = false;
     for (var c = 0; c < candidates.length; c++) {
       var cand = candidates[c];
-      var lx = lb.x - tw / 2 - HPAD;
-      var rx = lb.x + tw / 2 + HPAD;
+      var lx = cand.tx - tw / 2 - HPAD;
+      var rx = cand.tx + tw / 2 + HPAD;
       var ty = cand.ty - LABEL_H / 2;
       var by = cand.ty + LABEL_H / 2;
 
@@ -782,26 +788,53 @@ function drawLabels(data, color) {
       }
       if (overlaps) continue;
 
-      // place it
       placed.push({ left: lx, right: rx, top: ty, bottom: by });
-
-      // draw thin connector line from dot to label
-      ctx.beginPath();
-      ctx.strokeStyle = 'rgba(' + rgb + ',0.25)';
-      ctx.lineWidth = 0.5;
-      ctx.moveTo(lb.x, lb.y + (cand.stemDir > 0 ? -5 : 5));
-      ctx.lineTo(lb.x, cand.ty);
-      ctx.stroke();
-
-      // draw label text
-      ctx.textAlign = 'center';
-      ctx.fillStyle = 'rgba(' + rgb + ',0.7)';
-      ctx.fillText(txt, lb.x, cand.ty);
-
+      placements.push({ lb: lb, txt: txt, tx: cand.tx, ty: cand.ty, tw: tw });
       didPlace = true;
       break;
     }
   }
+
+  // second pass: draw dashed connector lines (behind text)
+  ctx.strokeStyle = 'rgba(' + rgb + ',0.3)';
+  ctx.lineWidth = 0.7;
+  ctx.setLineDash([3, 3]);
+  for (i = 0; i < placements.length; i++) {
+    var pl = placements[i];
+    var dx = pl.tx - pl.lb.x;
+    var dy = pl.ty - pl.lb.y;
+    var dist = Math.sqrt(dx * dx + dy * dy);
+    // start point: offset from dot center towards label by DOT_R
+    var sx = pl.lb.x + (dist > 0 ? dx / dist * DOT_R : 0);
+    var sy = pl.lb.y + (dist > 0 ? dy / dist * DOT_R : 0);
+    // end point: edge of label nearest the dot
+    var ex = pl.tx;
+    var ey = pl.ty + (dy < 0 ? LABEL_H / 2 : -LABEL_H / 2);
+    // if horizontally offset, use a two-segment elbow
+    if (Math.abs(dx) > 5) {
+      var midY = ey;
+      ctx.beginPath();
+      ctx.moveTo(sx, sy);
+      ctx.lineTo(sx, midY);
+      ctx.lineTo(ex, midY);
+      ctx.stroke();
+    } else {
+      ctx.beginPath();
+      ctx.moveTo(sx, sy);
+      ctx.lineTo(ex, ey);
+      ctx.stroke();
+    }
+  }
+  ctx.setLineDash([]);
+
+  // third pass: draw label text
+  ctx.textAlign = 'center';
+  ctx.fillStyle = 'rgba(' + rgb + ',0.7)';
+  for (i = 0; i < placements.length; i++) {
+    var pl = placements[i];
+    ctx.fillText(pl.txt, pl.tx, pl.ty);
+  }
+
   ctx.restore();
 }
 
